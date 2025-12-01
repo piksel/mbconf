@@ -2,11 +2,11 @@
 name = "mbconf"
 version = "0.1.0"
 edition = "2024"
-license-file = "LICENSE"
-description = ""
-homepage = "https://github.com/piksel/mbconf"
-repository = "https://github.com/piksel/mbconf"
-readme = "README.md"
+license-file.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+description = "Embedded configuration library to enable standardized setup using WebUSB or serial"
 
 [dependencies]
 bitflags = { version = "2.10.0" }
