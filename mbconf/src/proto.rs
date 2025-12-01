@@ -159,22 +159,6 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
             .and_then(|b| Command::try_from(*b).ok())
             .ok_or(CommandError::InvalidCommand)?;
 
-
-/*
-            'r' => Ok(Command::ReadConfig(get_config_field(bytes)?)),
-            'c' => Ok(Command::DescConfig(get_config_field(bytes)?)),
-            'w' => Ok(Command::WriteConfig(get_config_field(bytes)?, get_payload(bytes, 2)?)),
-            'R' => Ok(Command::ReadInfo(get_info_field(bytes)?)),
-            'I' => Ok(Command::DescInfo(get_info_field(bytes)?)),
-            'W' => Ok(Command::WriteInfo(get_info_field(bytes)?, get_payload(bytes, 2)?)),
-            's' => Ok(Command::DescSection(get_section(bytes)?)),
-            'a' => Ok(Command::DescAction(get_action(bytes)?)),
-            'A' => Ok(Command::Action(get_action(bytes)?)),
-            'i' => Ok(Command::Info),
-            '\0' | '\n' => Ok(Command::Noop),
-*/
-
-
         match command {
             Command::Action =>{
                 let ai = get_action(&mut bytes)?;
@@ -266,7 +250,7 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
         let bytes = bytes.into_iter();
         self.parse_command2(bytes, handler).await.unwrap_or_else(CommandResponse::error)
     }
-    
+
     pub fn config_field(&'s self, index: CI) -> &'s EntryDesc {
         &self.config_fields[index.as_index()]
     }
