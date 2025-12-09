@@ -9,5 +9,3 @@ readme.workspace = true
 
 [dependencies]
 elytra-conf = { path = "../elytra-conf" }
-wasm-rs-async-executor = { version = "0.9.0", default-features = false, features = []}
-wasm-bindgen = "0.2.106"
