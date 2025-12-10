@@ -1,10 +1,10 @@
 [package]
-name = "bytepack"
-version = "0.1.0"
+name = "elytra-bytepack"
 edition = "2024"
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 readme.workspace = true
+version.workspace = true
 
 [dependencies]

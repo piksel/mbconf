@@ -1,19 +1,19 @@
 [package]
 name = "elytra-conf"
-version = "0.1.0"
 edition = "2024"
 license.workspace = true
 repository.workspace = true
 homepage.workspace = true
 readme.workspace = true
 description = "Embedded configuration library to enable standardized setup using WebUSB or serial"
+version.workspace = true
 
 [dependencies]
 bitflags = { version = "2.10.0" }
-log = { version = "0.4" }
+log = { workspace = true }
 defmt = {version = "1.0", optional = true}
-typenum = { version = "1.19.0", features = ["const-generics"] }
-bytepack = { path = "../bytepack"}
+elytra-bytepack = { path = "../elytra-bytepack" }
+
 
 [dependencies.strum]
 version = "0.27.2"
@@ -27,8 +27,11 @@ default-features = false
 
 
 [features]
+default = ["macros", "async"]
 alloc = []
 defmt = ["dep:defmt"]
+macros = []
+async = []
 
 # only used to hide warnings about unused code
 unused = []

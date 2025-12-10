@@ -21,7 +21,7 @@ pub struct Section {
 #[derive(Clone)]
 pub enum LayoutEntry {
     Info(u8),
-    Config(u8),
+    Prop(u8),
 }
 
 #[derive(Clone)]
@@ -38,7 +38,7 @@ pub struct Entry {
 
 pub struct Info {
     pub proto_version: u8,
-    pub config_count: u8,
+    pub prop_count: u8,
     pub info_count: u8,
     pub section_count: u8,
     pub action_count: u8,
@@ -79,12 +79,12 @@ impl dyn ElytraDevice {
         
         let proto_version = res.next().unwrap();
         let section_count = res.next().unwrap();
-        let config_count = res.next().unwrap();
+        let prop_count = res.next().unwrap();
         let info_count = res.next().unwrap();
         let action_count = res.next().unwrap();
         Ok(Info {
             proto_version,
-            config_count,
+            prop_count,
             info_count,
             section_count,
             action_count,
@@ -111,7 +111,7 @@ impl dyn ElytraDevice {
                 break;
             }
             entries.push(match ft {
-                b'c' => LayoutEntry::Config(ix),
+                b'c' => LayoutEntry::Prop(ix),
                 b'i' => LayoutEntry::Info(ix),
                 ft => panic!("Unknown field type: {:02x}", ft)
             });

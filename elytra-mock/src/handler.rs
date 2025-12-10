@@ -1,6 +1,6 @@
-use elytra_conf::{FieldValue, command::{CommandError, CommandHandler}};
+use elytra_conf::{field::FieldValue, command::{CommandError, CommandHandler}};
 
-use crate::{Action, ConfigField, InfoField, PROTO};
+use crate::{Action, PropField, InfoField, MOCK_CONF};
 
 pub struct MockHandler;
 
@@ -10,20 +10,20 @@ impl MockHandler {
     }
 }
 
-impl CommandHandler<ConfigField, InfoField, Action> for MockHandler {
+impl CommandHandler<PropField, InfoField, Action> for MockHandler {
     async fn noop(&mut self) {
         eprintln!("CMD: noop")
     }
 
-    async fn read_config(&mut self, config_field: ConfigField) 
+    async fn read_prop(&mut self, prop_field: PropField) 
         -> Result<FieldValue, CommandError> {
-       eprintln!("CMD: read_config: {:?}", config_field);
-       Ok(FieldValue::from_store(PROTO.config_field(config_field), [0u8; 64]))
+       eprintln!("CMD: read_prop: {:?}", prop_field);
+       Ok(FieldValue::from_store(MOCK_CONF.prop_field(prop_field), [0u8; 64]))
     }
 
-    async fn write_config(&mut self, config_field: ConfigField, value: FieldValue) 
+    async fn write_prop(&mut self, prop_field: PropField, value: FieldValue) 
         -> Result<(), CommandError> {
-       eprintln!("CMD: write_config: {:?}", config_field);
+       eprintln!("CMD: write_prop: {:?}", prop_field);
        eprintln!(" => {:x?}", value);
        Ok(())
     }
@@ -31,7 +31,7 @@ impl CommandHandler<ConfigField, InfoField, Action> for MockHandler {
     async fn read_info(&mut self, info_field: InfoField) 
         -> Result<FieldValue, CommandError>  {
        eprintln!("CMD: read_info: {:?}", info_field);
-       Ok(FieldValue::from_store(PROTO.info_field(info_field), [0u8; 64]))
+       Ok(FieldValue::from_store(MOCK_CONF.info_field(info_field), [0u8; 64]))
     }
 
     async fn write_info(&mut self, info_field: InfoField, value: FieldValue) 

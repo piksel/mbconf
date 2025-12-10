@@ -3,7 +3,10 @@ use log::{debug, info};
 use num_enum::TryFromPrimitive;
 
 use crate::{
-    FieldValue, command::{Command, CommandError, CommandHandler, CommandResponse}, entry::{Constraints, EntryDesc, Field, ValueConstraints}, traits::{ActionIndex, ConfigIndex, InfoIndex, SectionIndex}
+   field::FieldValue, 
+   command::{Command, CommandError, CommandHandler, CommandResponse}, 
+   entry::{Constraints, EntryDesc, Field, ValueConstraints}, 
+   traits::{ActionIndex, PropIndex, InfoIndex, SectionIndex}
 };
 use core::{marker::PhantomData, slice};
 
@@ -15,7 +18,7 @@ pub const PAYLOAD_SIZE: usize = MESSAGE_LENGTH - 1;
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
 pub enum EntryType {
     Action = b'a',
-    Config = b'c',
+    Prop = b'c',
     Info = b'i',
     Section = b's',
 }
@@ -23,7 +26,7 @@ pub enum EntryType {
 #[repr(u8)]
 #[derive(Clone, Copy, PartialEq, Eq, Debug, TryFromPrimitive, strum::EnumString)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum QueryProp {
+pub enum QueryTarget {
     Basic = b'b',
     Icon = b'i',
     Help = b'h',
@@ -47,37 +50,37 @@ pub enum QueryProp {
 
 #[derive(Debug)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-enum EntryIndex<AI, CI, II, SI> {
+enum EntryIndex<AI, PI, II, SI> {
     Action(AI),
-    Config(CI),
+    Prop(PI),
     Info(II),
     Section(SI)
 }
 
-pub struct Proto<
+pub struct Config<
     const S: usize, 
     const C: usize, 
     const I: usize, 
     const A: usize,
     const L: usize,
     SI: SectionIndex, 
-    CI: ConfigIndex, 
+    PI: PropIndex, 
     II: InfoIndex, 
     AI: ActionIndex
 > {
     pub sections: [EntryDesc; S],
-    pub config_fields: [EntryDesc; C],
+    pub prop_fields: [EntryDesc; C],
     pub info_fields: [EntryDesc; I],
     pub actions: [EntryDesc; A],
-    pub layout: [(SI, Field<CI, II>); L],
-    _field_index: PhantomData<CI>,
+    pub layout: [(SI, Field<PI, II>); L],
+    _field_index: PhantomData<PI>,
     _status_index: PhantomData<II>,
     _action_index: PhantomData<AI>
 }
 
-fn get_config_field<'a, CI: ConfigIndex>(bytes: &mut slice::Iter<'a, u8>) -> Result<CI, CommandError> {
+fn get_prop_field<'a, PI: PropIndex>(bytes: &mut slice::Iter<'a, u8>) -> Result<PI, CommandError> {
     let index = *bytes.next().ok_or(CommandError::MissingArgument)?;
-    CI::from_byte(index).ok_or(CommandError::InvalidField)
+    PI::from_byte(index).ok_or(CommandError::InvalidField)
 }
 
 fn get_info_field<'a, II: InfoIndex>(bytes: &mut slice::Iter<'a, u8>) -> Result<II, CommandError> {
@@ -108,37 +111,37 @@ fn get_entry_type<'a>(bytes: &mut slice::Iter<'a, u8>) -> Result<EntryType, Comm
     let byte = *bytes.next().ok_or(CommandError::MissingArgument)?;
     EntryType::try_from_primitive(byte).or(Err(CommandError::InvalidEntry))
 }
-fn get_entry_index<'a, AI, CI, II, SI>(bytes: &mut slice::Iter<'a, u8>, entry_type: EntryType) -> Result<EntryIndex<AI, CI, II, SI>, CommandError> where 
-    AI: ActionIndex, CI: ConfigIndex, II: InfoIndex, SI: SectionIndex
+fn get_entry_index<'a, AI, PI, II, SI>(bytes: &mut slice::Iter<'a, u8>, entry_type: EntryType) -> Result<EntryIndex<AI, PI, II, SI>, CommandError> where 
+    AI: ActionIndex, PI: PropIndex, II: InfoIndex, SI: SectionIndex
 {
     let index = *bytes.next().ok_or(CommandError::MissingArgument)?;
     match entry_type {
         EntryType::Action => Ok(EntryIndex::Action(AI::from_byte(index).ok_or(CommandError::InvalidAction)?)),
-        EntryType::Config => Ok(EntryIndex::Config(CI::from_byte(index).ok_or(CommandError::InvalidAction)?)),
+        EntryType::Prop => Ok(EntryIndex::Prop(PI::from_byte(index).ok_or(CommandError::InvalidAction)?)),
         EntryType::Info   => Ok(EntryIndex::Info(II::from_byte(index).ok_or(CommandError::InvalidAction)?)),
         EntryType::Section => Ok(EntryIndex::Section(SI::from_byte(index).ok_or(CommandError::InvalidAction)?)),
     }
 }
-fn get_query_prop<'a>(bytes: &mut slice::Iter<'a, u8>) -> Result<QueryProp, CommandError> {
+fn get_query_prop<'a>(bytes: &mut slice::Iter<'a, u8>) -> Result<QueryTarget, CommandError> {
     let byte = *bytes.next().ok_or(CommandError::MissingArgument)?;
-    QueryProp::try_from_primitive(byte).or(Err(CommandError::InvalidQuery))
+    QueryTarget::try_from_primitive(byte).or(Err(CommandError::InvalidQuery))
 }
 
 
-impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usize, const L: usize,
-    SI: SectionIndex, CI: ConfigIndex, II: InfoIndex, AI: ActionIndex>  Proto<S, C, I, A, L, SI, CI, II, AI> {
+impl <'s: 'static, const S: usize, const P: usize, const I: usize, const A: usize, const L: usize,
+    SI: SectionIndex, PI: PropIndex, II: InfoIndex, AI: ActionIndex>  Config<S, P, I, A, L, SI, PI, II, AI> {
 
     const PROTO_VERSION: u8 = 1;
 
     pub const fn new(
             sections: [EntryDesc; S], 
-            config_fields: [EntryDesc; C], 
+            prop_fields: [EntryDesc; P], 
             info_fields: [EntryDesc; I], 
             actions: [EntryDesc; A],
-            layout: [(SI, Field<CI, II>); L]) -> Self {
+            layout: [(SI, Field<PI, II>); L]) -> Self {
         Self {
             sections,
-            config_fields,
+            prop_fields: prop_fields,
             info_fields,
             actions,
             layout,
@@ -156,8 +159,8 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
         // Field section count (1 byte)
         res.push(self.sections.len() as u8);
 
-        // Config field count (1 byte)
-        res.push(self.config_fields.len() as u8);
+        // Prop field count (1 byte)
+        res.push(self.prop_fields.len() as u8);
 
         // Info field count (1 byte)
         res.push(self.info_fields.len() as u8);
@@ -168,7 +171,7 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
         res
     }
 
-    pub async fn parse_command2<'a, CH: CommandHandler<CI, II, AI>>(&'s self, mut bytes: slice::Iter<'a, u8>, handler: &mut CH) -> Result<CommandResponse, CommandError> {
+    pub async fn parse_command2<'a, CH: CommandHandler<PI, II, AI>>(&'s self, mut bytes: slice::Iter<'a, u8>, handler: &mut CH) -> Result<CommandResponse, CommandError> {
         
         let command = bytes.next()
             .and_then(|b| Command::try_from(*b).ok())
@@ -180,20 +183,20 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
                 handler.do_action(ai).await?;
                 Ok(CommandResponse::OK)
             },
-            Command::ReadConfig => {
-                let config_field = get_config_field(&mut bytes)?;
-                handler.read_config(config_field).await.map(CommandResponse::from_field_value)
+            Command::ReadProp => {
+                let prop_field = get_prop_field(&mut bytes)?;
+                handler.read_prop(prop_field).await.map(CommandResponse::from_field_value)
             },
-            Command::DescConfig => {
-                let config_field = get_config_field(&mut bytes)?;
-                Ok(self.config_field(config_field).into())
+            Command::DescProp => {
+                let prop_field = get_prop_field(&mut bytes)?;
+                Ok(self.prop_field(prop_field).into())
             },
-            Command::WriteConfig => { 
-                let config_field = get_config_field(&mut bytes)?;
+            Command::WriteProp => { 
+                let prop_field = get_prop_field(&mut bytes)?;
                 let payload = get_payload(&mut bytes)?;
-                let desc = self.config_field(config_field);
+                let desc = self.prop_field(prop_field);
                 let field_value = FieldValue::from_message(desc, payload);
-                handler.write_config(config_field, field_value).await.and(Ok(CommandResponse::OK))
+                handler.write_prop(prop_field, field_value).await.and(Ok(CommandResponse::OK))
             },
             Command::ReadInfo => {
                 let info_field = get_info_field(&mut bytes)?;
@@ -230,16 +233,16 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
 
                 let entry = match entry_index {
                     EntryIndex::Action(ai) => self.action_name(ai),
-                    EntryIndex::Config(ci) => self.config_field(ci),
+                    EntryIndex::Prop(ci) => self.prop_field(ci),
                     EntryIndex::Info(ii) => self.info_field(ii),
                     EntryIndex::Section(si) => self.section_desc(si)
                 };
                 
                 match query_prop {
-                    QueryProp::Basic => Ok(entry.into()),
-                    QueryProp::Help => entry.help.ok_or(CommandError::NoContent).map(Into::into),
-                    QueryProp::Icon => entry.icon.ok_or(CommandError::NoContent).map(Into::into),
-                    QueryProp::Option => {
+                    QueryTarget::Basic => Ok(entry.into()),
+                    QueryTarget::Help => entry.help.ok_or(CommandError::NoContent).map(Into::into),
+                    QueryTarget::Icon => entry.icon.ok_or(CommandError::NoContent).map(Into::into),
+                    QueryTarget::Option => {
                         let Constraints::Values(ValueConstraints{value_provider, ..}) = &entry.constraints else {
                             return Err(CommandError::NotSupported)
                         };
@@ -250,7 +253,7 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
                         let option_index: u16 = u16::from_le_bytes(index_bytes);
                         value_provider.get(option_index as usize).ok_or(CommandError::InvalidOption).map(|s| (*s).into())
                     },
-                    QueryProp::Layout => match entry_index {
+                    QueryTarget::Layout => match entry_index {
                         EntryIndex::Section(si) => Ok(self.section_layout(si)),
                         _ => Err(CommandError::InvalidQuery)
                     }
@@ -266,13 +269,13 @@ impl <'s: 'static, const S: usize, const C: usize, const I: usize, const A: usiz
         }
     }
 
-    pub async fn parse_command<'a, CH: CommandHandler<CI, II, AI>>(&'s self, bytes: &'a [u8], handler: &mut CH) -> CommandResponse {
+    pub async fn parse_command<'a, CH: CommandHandler<PI, II, AI>>(&'s self, bytes: &'a [u8], handler: &mut CH) -> CommandResponse {
         let bytes = bytes.into_iter();
         self.parse_command2(bytes, handler).await.unwrap_or_else(CommandResponse::error)
     }
 
-    pub fn config_field(&'s self, index: CI) -> &'s EntryDesc {
-        &self.config_fields[index.as_index()]
+    pub fn prop_field(&'s self, index: PI) -> &'s EntryDesc {
+        &self.prop_fields[index.as_index()]
     }
 
     pub fn info_field(&'s self, index: II) -> &'s EntryDesc {

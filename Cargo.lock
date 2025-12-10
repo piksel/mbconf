@@ -139,10 +139,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "bytepack"
-version = "0.1.0"
-
-[[package]]
 name = "cassowary"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -534,6 +530,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 
 [[package]]
+name = "elytra-bytepack"
+version = "0.1.0"
+
+[[package]]
 name = "elytra-cli"
 version = "0.1.0"
 dependencies = [
@@ -554,12 +554,18 @@ name = "elytra-conf"
 version = "0.1.0"
 dependencies = [
  "bitflags 2.10.0",
- "bytepack",
  "defmt",
+ "elytra-bytepack",
  "log",
  "num_enum",
  "strum 0.27.2",
- "typenum",
+]
+
+[[package]]
+name = "elytra-macros"
+version = "0.1.0"
+dependencies = [
+ "elytra-conf",
 ]
 
 [[package]]
@@ -569,7 +575,9 @@ dependencies = [
  "chrono",
  "chrono-tz",
  "elytra-conf",
+ "elytra-macros",
  "elytra-wasm",
+ "log",
 ]
 
 [[package]]
@@ -1413,12 +1421,6 @@ dependencies = [
  "thread_local",
  "tracing-core",
 ]
-
-[[package]]
-name = "typenum"
-version = "1.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
 
 [[package]]
 name = "unicode-ident"

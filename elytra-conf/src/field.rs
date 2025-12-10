@@ -1,8 +1,8 @@
 use core::{prelude::rust_2024::*};
 use log::warn;
-use bytepack::Cursor;
+use elytra_bytepack::Cursor;
 use crate::{
-    entry::{Constraints, EntryDesc, EntryVariant}, proto::MESSAGE_LENGTH, values::{DefaultValue, ValueType}
+    entry::{Constraints, EntryDesc, EntryVariant}, config::MESSAGE_LENGTH, values::{DefaultValue, ValueType}
 };
 
 pub struct Options {
@@ -242,11 +242,10 @@ impl FieldValue{
 #[cfg(test)]
 mod test {
 
-    use crate::FieldValue;
     use crate::entry::{EntryDesc, integer};
     use crate::prelude::*;
 
-    const DESC_STRVAL1: EntryDesc = config("strval").as_entry();
+    const DESC_STRVAL1: EntryDesc = prop("strval").as_entry();
     const DESC_INTVAL1: EntryDesc = integer("strval").writable().as_entry();
     const OPT1_PROVIDER: [&'static str; 3] = ["item 1", "item 2", "item 3"];
     const OPT1_DEFAULT: [u16; 0] = [];

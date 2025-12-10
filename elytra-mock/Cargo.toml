@@ -1,19 +1,21 @@
 [package]
 name = "elytra-mock"
-version = "0.1.0"
 edition = "2024"
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 readme.workspace = true
+version.workspace = true
 
 [lib]
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-elytra-conf = { path = "../elytra-conf" }
 chrono = { version = "0.4.42", default-features =  false }
 chrono-tz = { version = "0.10" }
+log = { workspace = true }
+elytra-conf = { path = "../elytra-conf" }
+elytra-macros = { path = "../elytra-macros" }
 elytra-wasm = { path = "../elytra-wasm" }
 
 # [target.wasm32-unknown-unknown.dependencies]

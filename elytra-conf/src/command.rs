@@ -4,7 +4,8 @@ use core::prelude::rust_2024::{*};
 use core::future::Future;
 
 use crate::{
-    FieldValue, proto::{MESSAGE_LENGTH, PAYLOAD_SIZE}
+    config::{MESSAGE_LENGTH, PAYLOAD_SIZE},
+    field::FieldValue
 };
 
 pub struct CommandResponse {
@@ -87,9 +88,9 @@ impl From<&'static str> for CommandResponse {
 #[repr(u8)]
 #[derive(TryFromPrimitive)]
 pub enum Command {
-    ReadConfig = 'r' as u8,
-    DescConfig = 'c' as u8,
-    WriteConfig = 'w' as u8,
+    ReadProp = 'r' as u8,
+    DescProp = 'c' as u8,
+    WriteProp = 'w' as u8,
     ReadInfo = 'R' as u8,
     DescInfo = 'I' as u8,
     WriteInfo = 'W' as u8,
@@ -118,14 +119,14 @@ pub enum CommandError {
     NoContent = 12,
 }
 
-pub trait CommandHandler<CI, II, AI> {
+pub trait CommandHandler<PI, II, AI> {
     fn noop(&mut self) -> 
         impl Future<Output = ()> + Send;
         
-    fn read_config(&mut self, config_field: CI) 
+    fn read_prop(&mut self, prop_field: PI) 
         -> impl Future<Output = Result<FieldValue, CommandError>> + Send;
 
-    fn write_config(&mut self, config_field: CI, value: FieldValue) 
+    fn write_prop(&mut self, prop_field: PI, value: FieldValue) 
         -> impl Future<Output = Result<(), CommandError>> + Send;
 
     fn read_info(&mut self, info_field: II) 

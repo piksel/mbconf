@@ -2,7 +2,7 @@ use std::net::ToSocketAddrs;
 use std::{error::Error, net::SocketAddr};
 use std::path::PathBuf;
 use elytra_conf::entry::ExtraFlags;
-use elytra_conf::proto::QueryProp;
+use elytra_conf::config::QueryTarget;
 use elytra_conf::values::ValueType;
 
 use owo_colors::{AnsiColors, OwoColorize};
@@ -18,8 +18,8 @@ enum DeviceType {
     Serial
 }
 
-fn parse_query_prop(s: &str) -> Result<QueryProp, String> {
-    QueryProp::try_from(s).map_err(|e| format!("{:?}", e))
+fn parse_query_prop(s: &str) -> Result<QueryTarget, String> {
+    QueryTarget::try_from(s).map_err(|e| format!("{:?}", e))
 }
 
 fn parse_device_type(s: &str) -> Result<DeviceType, String> {
@@ -41,13 +41,20 @@ fn parse_device_type(s: &str) -> Result<DeviceType, String> {
 
 #[derive(Debug, Subcommand)]
 enum Commands {
+    /// Interactive browser of configuration
     Tui,
+
+    /// Query for basic information
     Info,
+
+    /// Send a specific query command
     Query(QueryArgs),
+
+    /// View a section summary
     Sections
 }
 
-/// Simple program to greet a person
+/// Elytra command line tool
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct AppArgs {
@@ -83,7 +90,7 @@ struct QueryArgs {
     entry: char,
     index: u8,
     #[arg(value_parser = parse_query_prop)]
-    prop: QueryProp
+    prop: QueryTarget
 }
 
 fn run_info(mut device: Box<dyn ElytraDevice + 'static>) -> Result<(), Box<dyn Error>> {
@@ -91,7 +98,7 @@ fn run_info(mut device: Box<dyn ElytraDevice + 'static>) -> Result<(), Box<dyn E
     println!("Version: {}", info.proto_version);
 
     println!("Sections: {}", info.section_count);
-    println!("Config fields: {}", info.config_count);
+    println!("Prop fields: {}", info.prop_count);
     println!("Info fields: {}", info.info_count);
     println!("Actions: {}", info.action_count);
     Ok(())
@@ -125,7 +132,7 @@ fn run_sections(mut device: Box<dyn ElytraDevice + 'static>) -> Result<(), Box<d
         println!(" ~ Querying {} fields(s)...", layout_ids.len().bright_blue());
         let mut layout: Vec<(LayoutEntry, Entry)>  = layout_ids.into_iter().map(|layout| {
             match layout {
-                LayoutEntry::Config(li) => device.get_entry(b'c', li),
+                LayoutEntry::Prop(li) => device.get_entry(b'c', li),
                 LayoutEntry::Info(li) => device.get_entry(b'i', li),
             }.map(|entry| (layout, entry) ).unwrap()
         }).collect();
@@ -134,7 +141,7 @@ fn run_sections(mut device: Box<dyn ElytraDevice + 'static>) -> Result<(), Box<d
         println!(" ~ Querying field extras...");
         for (le, entry) in layout.iter_mut() {
             let (vt, index) = match le {
-                LayoutEntry::Config(li) => (b'c', li),
+                LayoutEntry::Prop(li) => (b'c', li),
                 LayoutEntry::Info(li) => (b'i', li),
             };
     
@@ -170,7 +177,7 @@ fn run_sections(mut device: Box<dyn ElytraDevice + 'static>) -> Result<(), Box<d
 
         for (l, entry) in &section.layout {
             let (field_type, ft_col) = match l {
-                LayoutEntry::Config(_) => ("C", AnsiColors::BrightGreen),
+                LayoutEntry::Prop(_) => ("C", AnsiColors::BrightGreen),
                 LayoutEntry::Info(_) => ("I", AnsiColors::BrightMagenta),
             };
             let vt = ValueType::try_from(entry.variant).unwrap();
@@ -211,7 +218,7 @@ fn run_query(mut device: Box<dyn ElytraDevice + 'static>, args: QueryArgs) -> Re
     
     let entry = args.entry;
     let index: u8 = args.index;
-    let prop: QueryProp = args.prop;
+    let prop: QueryTarget = args.prop;
     let _ = device.send_command(&[b'q', entry as u8, index, prop as u8])?;
     print_log(device.get_log());
 

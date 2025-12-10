@@ -11,7 +11,7 @@ pub trait ActionIndex: Sized + Copy + Eq + Debug {
     fn from_byte(byte: u8) -> Option<Self>;
 }
 
-pub trait ConfigIndex: Sized + Copy + Eq + Debug {
+pub trait PropIndex: Sized + Copy + Eq + Debug {
     fn as_index(self) -> usize;
     fn from_byte(byte: u8) -> Option<Self>;
 }

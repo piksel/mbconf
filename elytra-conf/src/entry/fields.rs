@@ -1,24 +1,24 @@
 use core::ops::Range;
 
 use crate::{
-    traits::{ConfigIndex, InfoIndex},
+    traits::{PropIndex, InfoIndex},
     entry::{Constraints, EntryDesc, EntryVariant, ValueConstraints}, 
     prelude::OptionValueProvider, 
-    proto::EntryType, 
+    config::EntryType, 
     values::{DefaultValue, ValueType}
 };
 
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 #[cfg_attr(feature = "defmt", derive(defmt::Format))]
-pub enum Field<CI: ConfigIndex, II: InfoIndex> {
-    Conf(CI),
+pub enum Field<PI: PropIndex, II: InfoIndex> {
+    Prop(PI),
     Info(II)
 }
 
-impl <CI: ConfigIndex, II: InfoIndex> Field<CI, II> {
+impl <PI: PropIndex, II: InfoIndex> Field<PI, II> {
     pub fn bits(&self) -> [u8; 2] {
         match self {
-            Self::Conf(ci) => [EntryType::Config as u8, ci.as_index() as u8],
+            Self::Prop(pi) => [EntryType::Prop as u8, pi.as_index() as u8],
             Self::Info(ii) => [EntryType::Info as u8, ii.as_index() as u8],
         }
     }
@@ -171,8 +171,8 @@ pub const fn bytes(name: &'static str, size: u8) -> FieldEntry {
 }
 
 #[allow(unused)]
-pub const fn secret(name: &'static str) -> ConfigEntry {
-    ConfigEntry {
+pub const fn secret(name: &'static str) -> PropEntry {
+    PropEntry {
         name,
         value_type: ValueType::Secret,
         constraints: Constraints::None,
@@ -213,8 +213,8 @@ pub const fn integer(name: &'static str) -> InfoEntry {
 }
 
 #[allow(unused)]
-pub const fn option(name: &'static str, value_provider: &'static dyn OptionValueProvider) -> ConfigEntry {
-    ConfigEntry {
+pub const fn option(name: &'static str, value_provider: &'static dyn OptionValueProvider) -> PropEntry {
+    PropEntry {
         name,
         value_type: ValueType::Options,
         constraints: Constraints::Values(ValueConstraints { 
@@ -244,9 +244,9 @@ pub const fn info(name: &'static str) -> InfoEntry {
     }
 }
 
-pub type ConfigEntry = FieldEntry;
+pub type PropEntry = FieldEntry;
 #[allow(unused)]
-pub const fn config(name: &'static str) -> FieldEntry {
+pub const fn prop(name: &'static str) -> PropEntry {
     FieldEntry {
         name,
         value_type: ValueType::Text,

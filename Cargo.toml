@@ -1,9 +1,14 @@
 [workspace]
 resolver = "3"
-members = ["elytra-mock","elytra-wasm","elytra-conf", "elytra-cli", "bytepack"]
+members = ["elytra-mock", "elytra-wasm", "elytra-conf", "elytra-cli", "elytra-bytepack", "elytra-macros"]
 
-
+# shared package meta
+package.version = "0.1.0"
+package.authors = ["nils måsén <nils@piksel.se>"]
 package.license = "MIT"
 package.homepage = "https://github.com/piksel/mbconf"
 package.repository = "https://github.com/piksel/mbconf"
 package.readme = "README.md"
+
+# shared dependencies
+dependencies.log = { version = "0.4" }

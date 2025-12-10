@@ -55,7 +55,7 @@ fn run_worker(mut device: &mut Box<dyn ElytraDevice + 'static>, tx: Sender<Progr
 
     let mut sections = get_entries(&mut device, &tx, b's', info.section_count as usize, "sections")?;
     get_layout(&mut device, &tx, &mut sections)?;
-    let configs = get_entries(&mut device, &tx, b'c', info.config_count as usize, "config fields")?;
+    let props = get_entries(&mut device, &tx, b'c', info.prop_count as usize, "prop fields")?;
     let infos = get_entries(&mut device, &tx, b'i', info.info_count as usize, "info fields")?;
     let actions = get_entries(&mut device, &tx, b'a', info.action_count as usize, "actions")?;
 
@@ -68,7 +68,7 @@ fn run_worker(mut device: &mut Box<dyn ElytraDevice + 'static>, tx: Sender<Progr
         let layout = section_entry.layout.clone().unwrap_or_default();
         let layout = layout.into_iter().map(|le| {
             match le {
-                LayoutEntry::Config(ci) => (le, configs[ci as usize].clone()),
+                LayoutEntry::Prop(ci) => (le, props[ci as usize].clone()),
                 LayoutEntry::Info(ii) => (le, infos[ii as usize].clone())
             }
         }).collect();

@@ -19,8 +19,8 @@ impl OptionValueProvider for TimeZoneOpts {
 }
 const TIME_ZONE_OPTS: TimeZoneOpts = TimeZoneOpts{};
 
-elytra! (
- info: {
+elytra!( pub MOCK_CONF: MockConf {
+    info: {
         WifiStatus: status("Connection Status")
             .with_help("The current progress or result (failure or success)")
             .with_icon("wifi-sync"),
@@ -34,8 +34,8 @@ elytra! (
         Time: info("Time")
             .with_help("The current time, as would be displayed on the clock")
     },
-    config: {
-        WifiNetwork: config("Network (SSID)")
+    props: {
+        WifiNetwork: prop("Network (SSID)")
             .with_help("The name the WiFi network to connect to"),
         WifiPassword: secret("Password")
             .with_help("The password for the WiFi network"),
@@ -46,11 +46,11 @@ elytra! (
         Serial: integer("Serial number")
             .with_help("The unique series number of your device")
             .writable(),
-        TimeZone: config("Timezone")
+        TimeZone: prop("Timezone")
             .with_options(&TIME_ZONE_OPTS)
             .with_help("The timezone used for adjusting DST and displayed time offset")
             .with_default_text("Europe/Stockholm"),
-        NtpServer: config("NTP Server")
+        NtpServer: prop("NTP Server")
             .with_help("The Network Time Protocol server to query for the current time")
             .with_default_text("ntp.se")
     },
@@ -78,25 +78,26 @@ elytra! (
     layout: {
         Section::Wifi: [
             Field::Info(InfoField::WifiStatus),
-            Field::Conf(ConfigField::WifiNetwork),
-            Field::Conf(ConfigField::WifiPassword)
+            Field::Prop(PropField::WifiNetwork),
+            Field::Prop(PropField::WifiPassword)
         ],
         Section::Display: [
-            Field::Conf(ConfigField::BrightOffset)
+            Field::Prop(PropField::BrightOffset)
         ],
         Section::Clock: [
             Field::Info(InfoField::Time),
-            Field::Conf(ConfigField::NtpServer),
-            Field::Conf(ConfigField::TimeZone)
+            Field::Prop(PropField::NtpServer),
+            Field::Prop(PropField::TimeZone)
         ],
         Section::Hardware: [
-            Field::Conf(ConfigField::Serial),
+            Field::Prop(PropField::Serial),
             Field::Info(InfoField::FlashUUID),
             Field::Info(InfoField::FlashJEDEC),
             Field::Info(InfoField::PicoROM)
         ]
     }
+}
 );
 
 #[cfg(target_arch = "wasm32")]
-elytra_wasm::elytra_wasm! { PROTO, &mut crate::handler::MockHandler }
+elytra_wasm::elytra_wasm! { ELYTRA_MOCK, &mut crate::handler::MockHandler }

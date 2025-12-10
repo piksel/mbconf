@@ -1,12 +1,12 @@
 use core::prelude::rust_2024::{*};
 use core::{ops::Range};
 use bitflags::bitflags;
-use bytepack::{Buf, pack};
+use elytra_bytepack::{Buf, pack};
 use crate::{
     values::DefaultValue,
     command::CommandResponse, 
     entry::options::{OptionValueProvider}, 
-    proto::MESSAGE_LENGTH
+    config::MESSAGE_LENGTH
 };
 
 pub mod options;
