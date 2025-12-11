@@ -229,6 +229,18 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a1d728cc89cf3aee9ff92b05e62b19ee65a02b5702cff7d5a377e32c6ae29d8d"
 
 [[package]]
+name = "clock-example"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "chrono-tz",
+ "elytra-conf",
+ "elytra-macros",
+ "elytra-wasm",
+ "log",
+]
+
+[[package]]
 name = "cobs"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -566,18 +578,6 @@ name = "elytra-macros"
 version = "0.1.0"
 dependencies = [
  "elytra-conf",
-]
-
-[[package]]
-name = "elytra-mock"
-version = "0.1.0"
-dependencies = [
- "chrono",
- "chrono-tz",
- "elytra-conf",
- "elytra-macros",
- "elytra-wasm",
- "log",
 ]
 
 [[package]]

@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["elytra-mock", "elytra-wasm", "elytra-conf", "elytra-cli", "elytra-bytepack", "elytra-macros"]
+members = ["elytra-conf", "elytra-wasm", "elytra-cli", "elytra-bytepack", "elytra-macros", "examples/clock-example"]
 
 # shared package meta
 package.version = "0.1.0"

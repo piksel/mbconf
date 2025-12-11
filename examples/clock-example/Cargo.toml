@@ -1,11 +1,12 @@
 [package]
-name = "elytra-mock"
+name = "clock-example"
 edition = "2024"
 license.workspace = true
 homepage.workspace = true
 repository.workspace = true
 readme.workspace = true
 version.workspace = true
+publish = false
 
 [lib]
 crate-type = ["cdylib", "lib"]
@@ -14,9 +15,8 @@ crate-type = ["cdylib", "lib"]
 chrono = { version = "0.4.42", default-features =  false }
 chrono-tz = { version = "0.10" }
 log = { workspace = true }
-elytra-conf = { path = "../elytra-conf", features = ["alloc"]}
-elytra-macros = { path = "../elytra-macros" }
-elytra-wasm = { path = "../elytra-wasm" }
+elytra-conf = { path = "../../elytra-conf", features = ["alloc"] }
+elytra-macros = { path = "../../elytra-macros" }
 
-# [target.wasm32-unknown-unknown.dependencies]
-# elytra-wasm = { path = "../elytra-wasm" }
+[target.wasm32-unknown-unknown.dependencies]
+elytra-wasm = { path = "../../elytra-wasm" }
