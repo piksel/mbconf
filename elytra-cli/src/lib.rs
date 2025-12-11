@@ -1,7 +1,7 @@
 use std::{error::Error, io::Write};
 
-use color_eyre::eyre::eyre;
-use elytra_conf::entry::ExtraFlags;
+use color_eyre::eyre::{eyre};
+use elytra_conf::{command::CommandKey, config::QueryTargetKey, entry::ExtraFlags};
 
 pub mod wasm;
 pub mod tcp;
@@ -44,10 +44,18 @@ pub struct Info {
     pub action_count: u8,
 }
 
+fn err_msg(bytes: &[u8]) -> String {
+    String::from_utf8_lossy(&bytes[2..]).trim_end_matches('\0').to_owned()
+}
+
 impl dyn ElytraDevice {
     pub fn get_entry(&mut self, entry_type: u8, index: u8) -> Result<Entry, Box<dyn Error>> {
-        let res = self.send_command( &[b'q', entry_type, index, b'b'])?;
-        assert_eq!(1, res[0]);
+        let res = self.send_command( &[
+            CommandKey::Query as u8, 
+            entry_type, index, 
+            QueryTargetKey::Field as u8
+        ])?;
+        if res[0] != 1 { return Err(eyre!("Got error response: {} ({:02x?}) ", err_msg(&res), &res[1]))? }
         let flags = ExtraFlags::from_bits_truncate(res[1]);
         let variant = res[2];
         let mut constraints = [0u8; 8];
@@ -72,7 +80,7 @@ impl dyn ElytraDevice {
 
 
     pub fn get_info(&mut self) -> Result<Info, Box<dyn Error>>  {
-        let mut res = self.send_command(&[b'i'])?.into_iter();
+        let mut res = self.send_command(&[CommandKey::Meta as u8])?.into_iter();
         if res.next() != Some(1) {
             Err(eyre!("Got fail response from device!"))?;
         }

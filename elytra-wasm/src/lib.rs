@@ -1,10 +1,8 @@
 use std::io::Write;
 
-// use elytra_mock::{PROTO, handler::MockHandler};
-
 #[macro_export]
 macro_rules! elytra_wasm {
-    ( $e:ident, $($h:tt)* ) => {
+    ( $e:expr ) => {
 
         thread_local! {
             static ELYTRA_WASM_OUT: std::cell::Cell<[u64; 8]> = std::cell::Cell::new([0; 8]);
@@ -14,9 +12,12 @@ macro_rules! elytra_wasm {
         #[unsafe(no_mangle)]
         pub extern "C" fn send(a: u64, b: u64, c: u64, d: u64, e: u64, f: u64, g: u64, h: u64) -> u8 {
             let in_bytes = elytra_wasm::unpack64([a, b, c, d, e, f, g, h]);
-            let res = elytra_wasm::sync_await($e.parse_command(&in_bytes, $($h)*));
+            let res = match elytra_conf::command::Command::from_bytes(&in_bytes) {
+                Ok(command) => $e(command),
+                Err(e) => elytra_conf::command::CommandResponse::error(e)
+            };
             if let Ok(res_bytes) = res.as_bytes().try_into() {
-            ELYTRA_WASM_OUT.set(elytra_wasm::pack64(res_bytes));
+                ELYTRA_WASM_OUT.set(elytra_wasm::pack64(res_bytes));
                 return 8;
             } else {
                 return 0;

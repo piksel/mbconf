@@ -1,8 +1,10 @@
 use core::{prelude::rust_2024::*};
+#[cfg(feature = "alloc")]
+use alloc::borrow::ToOwned;
 use log::warn;
 use elytra_bytepack::Cursor;
 use crate::{
-    entry::{Constraints, EntryDesc, EntryVariant}, config::MESSAGE_LENGTH, values::{DefaultValue, ValueType}
+    command::CommandResponse, config::MESSAGE_LENGTH, entry::{Constraints, EntryDesc, EntryVariant}, values::{DefaultValue, ValueType}
 };
 
 pub struct Options {
@@ -171,18 +173,32 @@ impl FieldValue{
         self.set_len(size);
     }
 
-    #[cfg(feature = "alloc")]
-    pub fn get_text(&self) -> String {
-        let end = self.data.iter().position(|&b| b == 0).unwrap_or(self.data.len());
-        String::from_utf8_lossy(&self.data[1..end]).to_string()
-    }
-
-    #[cfg(not(feature = "alloc"))]
     pub fn get_text(&self) -> &str {
         use core::str;
 
         let end = self.data.iter().position(|&b| b == 0).unwrap_or(self.data.len());
         str::from_utf8(&self.data[1..end]).unwrap_or_default()
+    }
+
+    pub fn set_status(&mut self, code: u8, text: &str) {
+        let max_len = text.floor_char_boundary(62);
+        let value = if text.len() != max_len {
+            &text[0..max_len]
+        } else {text};
+        let value_bytes = value.as_bytes();
+        self.data[1] = code;
+        for i in 0..value_bytes.len() {
+            self.data[i + 2] = value_bytes[i];
+        }
+        self.set_len(value_bytes.len() + 1);
+    }
+
+    pub fn set_bytes(&mut self, bytes: &[u8]) {
+        let clamped_len: usize = bytes.len().min(63);
+        for i in 0..clamped_len {
+            self.data[i + 1] = bytes[i];
+        }
+        self.set_len(clamped_len);
     }
 
     pub fn set_text(&mut self, value: &str) {
@@ -215,11 +231,11 @@ impl FieldValue{
                 },
                 ValueType::Text => {
                     #[cfg(feature = "alloc")]
-                    self.set_text(self.get_text());
+                    self.set_text(&self.get_text().to_owned());
                 },
                 ValueType::Secret => {
                     #[cfg(feature = "alloc")]
-                    self.set_text(&self.get_text());
+                    self.set_text(&self.get_text().to_owned());
                 },
                 ValueType::Status => {},
                 ValueType::Bytes => {},
@@ -236,6 +252,12 @@ impl FieldValue{
     fn is_empty(&self) -> bool {
         if self.data[0] == 0 { return true }
         self.data.iter().all(|b| *b == 0xff)
+    }
+}
+
+impl From<FieldValue> for CommandResponse {
+    fn from(value: FieldValue) -> Self {
+        Self::from_field_value(value)
     }
 }
 

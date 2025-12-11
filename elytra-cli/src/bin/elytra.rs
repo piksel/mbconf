@@ -2,7 +2,7 @@ use std::net::ToSocketAddrs;
 use std::{error::Error, net::SocketAddr};
 use std::path::PathBuf;
 use elytra_conf::entry::ExtraFlags;
-use elytra_conf::config::QueryTarget;
+use elytra_conf::config::QueryTargetKey;
 use elytra_conf::values::ValueType;
 
 use owo_colors::{AnsiColors, OwoColorize};
@@ -18,8 +18,8 @@ enum DeviceType {
     Serial
 }
 
-fn parse_query_prop(s: &str) -> Result<QueryTarget, String> {
-    QueryTarget::try_from(s).map_err(|e| format!("{:?}", e))
+fn parse_query_prop(s: &str) -> Result<QueryTargetKey, String> {
+    QueryTargetKey::try_from(s).map_err(|e| format!("{:?}", e))
 }
 
 fn parse_device_type(s: &str) -> Result<DeviceType, String> {
@@ -90,7 +90,7 @@ struct QueryArgs {
     entry: char,
     index: u8,
     #[arg(value_parser = parse_query_prop)]
-    prop: QueryTarget
+    prop: QueryTargetKey
 }
 
 fn run_info(mut device: Box<dyn ElytraDevice + 'static>) -> Result<(), Box<dyn Error>> {
@@ -218,7 +218,7 @@ fn run_query(mut device: Box<dyn ElytraDevice + 'static>, args: QueryArgs) -> Re
     
     let entry = args.entry;
     let index: u8 = args.index;
-    let prop: QueryTarget = args.prop;
+    let prop: QueryTargetKey = args.prop;
     let _ = device.send_command(&[b'q', entry as u8, index, prop as u8])?;
     print_log(device.get_log());
 

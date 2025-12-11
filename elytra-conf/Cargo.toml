@@ -27,11 +27,10 @@ default-features = false
 
 
 [features]
-default = ["macros", "async"]
+default = ["macros"]
 alloc = []
 defmt = ["dep:defmt"]
 macros = []
-async = []
 
 # only used to hide warnings about unused code
 unused = []

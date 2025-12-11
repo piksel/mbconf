@@ -20,7 +20,7 @@ impl OptionValueProvider for TimeZoneOpts {
 const TIME_ZONE_OPTS: TimeZoneOpts = TimeZoneOpts{};
 
 elytra!( pub MOCK_CONF: MockConf {
-    info: {
+    info: InfoField {
         WifiStatus: status("Connection Status")
             .with_help("The current progress or result (failure or success)")
             .with_icon("wifi-sync"),
@@ -34,7 +34,7 @@ elytra!( pub MOCK_CONF: MockConf {
         Time: info("Time")
             .with_help("The current time, as would be displayed on the clock")
     },
-    props: {
+    props: PropField {
         WifiNetwork: prop("Network (SSID)")
             .with_help("The name the WiFi network to connect to"),
         WifiPassword: secret("Password")
@@ -54,7 +54,7 @@ elytra!( pub MOCK_CONF: MockConf {
             .with_help("The Network Time Protocol server to query for the current time")
             .with_default_text("ntp.se")
     },
-    sections: {
+    sections: Section {
         Wifi: section("WiFi")
             .with_help("Connection details to be used to sync the time over the internet")
             .with_icon("wifi"),
@@ -68,7 +68,7 @@ elytra!( pub MOCK_CONF: MockConf {
         Hardware: section("Hardware Info")
             .with_icon("cog")
     },
-    actions: {
+    actions: Action {
         Reset: action("Reset")
             .with_icon("power"),
 
@@ -100,4 +100,4 @@ elytra!( pub MOCK_CONF: MockConf {
 );
 
 #[cfg(target_arch = "wasm32")]
-elytra_wasm::elytra_wasm! { ELYTRA_MOCK, &mut crate::handler::MockHandler }
+elytra_wasm::elytra_wasm! (crate::handler::handle_command);

@@ -14,7 +14,7 @@ crate-type = ["cdylib", "lib"]
 chrono = { version = "0.4.42", default-features =  false }
 chrono-tz = { version = "0.10" }
 log = { workspace = true }
-elytra-conf = { path = "../elytra-conf" }
+elytra-conf = { path = "../elytra-conf", features = ["alloc"]}
 elytra-macros = { path = "../elytra-macros" }
 elytra-wasm = { path = "../elytra-wasm" }
 
